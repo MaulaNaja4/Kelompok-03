@@ -1,0 +1,104 @@
+#include <LiquidCrystal.h>
+#define WATERPIN 7
+#define pinTemp A0
+#define MAXDRYNESS 500
+#define WATERPOSTDELAY 1000
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+int npnPin = 7; //Pompa Air
+double temp; //temperatur
+int sensorInput;
+int ch = A0; //soil moinsture sensor
+int photocellPin = A1;
+int photocellReading;
+int LEDpin = 10; //lampu UV
+int LEDbrightness;
+int pushButton = 6;
+int buzzPin = 8;
+
+void setup()
+{ 
+  digitalWrite(WATERPIN, LOW);
+  pinMode(WATERPIN, OUTPUT);
+  pinMode(pushButton, INPUT);
+  Serial.begin(9600); 
+  lcd.begin(16,2);
+}
+
+void loop() {
+  lcd.print("Suhu Tanah: ");
+  lcd.setCursor(0,1);
+  lcd.print("Cahaya: ");
+  photocellReading = analogRead(photocellPin);
+  sensorInput = analogRead(A0);    
+  temp = (double)sensorInput / 1024;      
+  temp = temp * 5;                 
+  temp = temp - 0.5;               
+  temp = temp * 100;
+  lcd.clear();
+ lcd.print("Suhu Tanah: ");
+ lcd.print(temp);
+ lcd.setCursor(0,1);
+ lcd.print("Cahaya: ");
+ lcd.print(photocellReading);
+ photocellReading = 1023 - photocellReading;
+ LEDbrightness = map(photocellReading, 0, 1023, 0, 255);
+ analogWrite(LEDpin, LEDbrightness);
+ lcd.clear();
+ 
+ int buttonState = digitalRead(pushButton);
+ Serial.println(buttonState);
+  if (buttonState == 1) { //menyalakan pompa manual
+    lcd.clear();
+    lcd.print("Penyiraman");
+    lcd.setCursor(0,1);
+    lcd.print("Manual");
+    lcd.setCursor(0,1);
+    delay(1000);
+    lcd.clear();
+    tone(buzzPin, 523, 500);
+    lcd.print("Pompa Menyala");
+    lcd.setCursor(0,1);
+    lcd.print("Menyiram Tanaman");
+    digitalWrite(7, HIGH);
+    delay(8000);
+    digitalWrite(7, LOW);
+    ch++;
+    
+  }
+  
+ int SensorValue = analogRead(A0);
+ if(temp >= 30 ) { //pompa akan menyala jika nilai temp lebih dari samadengan 30 
+    lcd.clear();
+    lcd.print("Tanah Kering");
+    lcd.setCursor(0,1);
+    delay(1000);
+    lcd.clear();
+    tone(buzzPin, 523, 500);
+    lcd.setCursor(0,1);
+    digitalWrite(7, HIGH);
+    delay(8000);
+    digitalWrite(7, LOW);
+    ch++;
+   
+ }
+  else {
+     lcd.clear();
+ 	 lcd.print("Suhu Tanah: ");
+ 	 lcd.print(temp);
+ 	 lcd.setCursor(0,1);
+ 	 lcd.print("Cahaya: ");
+ 	 lcd.print(photocellReading);
+     delay(1000);
+     digitalWrite(7,LOW);
+     delay(WATERPOSTDELAY);
+     ch++;
+  }
+ lcd.clear();
+ lcd.print("Suhu Tanah: ");
+ lcd.print(temp);
+ lcd.setCursor(0,1);
+ lcd.print("Cahaya: ");
+ lcd.print(photocellReading);
+ delay(1000);
+ lcd.clear();
+}
